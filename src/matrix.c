@@ -6,7 +6,7 @@ struct matrix
     int line;
     int column;
     float info;
-}
+};  
 
 int matrix_create(Matrix **m){
 
