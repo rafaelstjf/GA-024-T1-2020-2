@@ -2,14 +2,7 @@
 #define MATRIX_H
 #include <stdio.h>
 #include <stdlib.h>
-typedef struct matrix
-{
-    struct matrix *right; //proximo elemento != 0 na mesma linha
-    struct matrix *below; //proximo elemento != 0 na mesma coluna
-    int line;
-    int column;
-    float info;
-} Matrix;
+typedef struct matrix Matrix;
 
 /**
  * le de stdin os elementos diferentes de zero de uma matriz e monta a estrutura especificada acima para listas encadeadas, 

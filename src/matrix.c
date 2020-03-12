@@ -1,4 +1,13 @@
 #include "matrix.h"
+struct matrix
+{
+    struct matrix *right; //proximo elemento != 0 na mesma linha
+    struct matrix *below; //proximo elemento != 0 na mesma coluna
+    int line;
+    int column;
+    float info;
+}
+
 int matrix_create(Matrix **m){
 
  return 0;   
