@@ -39,8 +39,8 @@ static int matrix_createheaders(Matrix **m, unsigned int n_rows, unsigned int n_
     if ((*m))
         free((*m));
     (*m) = (Matrix *)malloc(sizeof(Matrix)); //cabeca da lista
-    (*m)->right = NULL;
-    (*m)->below = NULL;
+    (*m)->right = (*m);
+    (*m)->below = (*m);
     (*m)->line = -1;
     (*m)->column = -1;
     (*m)->info = -1.0;
@@ -50,20 +50,19 @@ static int matrix_createheaders(Matrix **m, unsigned int n_rows, unsigned int n_
         //cria um novo no e atribui os valores a ele
         Matrix *r = (Matrix *)malloc(sizeof(Matrix));
         r->right = r;
-        r->below = NULL;
+        r->below = (*m);
         r->line = i;
         r->column = -1;
         r->info = -1.0;
         it->below = r;
         it = it->below;
     }
-    it->below = (*m);
     it = (*m);
     for (unsigned int j = 1; j <= n_columns; j++)
     {
         //cria um novo no e atribui os valores a ele
         Matrix *r = (Matrix *)malloc(sizeof(Matrix));
-        r->right = NULL;
+        r->right = (*m);
         r->below = r;
         r->line = -1;
         r->column = j;
@@ -71,13 +70,12 @@ static int matrix_createheaders(Matrix **m, unsigned int n_rows, unsigned int n_
         it->right = r;
         it = it->right;
     }
-    it->right = (*m);
     return sucesso;
 }
-static int matrix_addelem(Matrix **m, unsigned int n_rows, unsigned int n_columns, int line, int column, float info)
+static int matrix_insertelement(Matrix **m, unsigned int n_rows, unsigned int n_columns, int line, int column, float info)
 {
     if (info == 0.0)
-        return sucesso;
+        return sucesso; //pula qualquer 0
     Matrix *it_r = (*m);
     Matrix *it_c = (*m);
     Matrix *ant = NULL;
@@ -113,6 +111,8 @@ static int matrix_addelem(Matrix **m, unsigned int n_rows, unsigned int n_column
     }
     else
     {
+        if (it_c2->line == n->line && it_c2->column == n->column)
+            return sucesso;
         it_c2->below = n;
         n->below = it_c;
     }
@@ -138,11 +138,11 @@ static int matrix_addelem(Matrix **m, unsigned int n_rows, unsigned int n_column
     return sucesso;
 }
 //se ja existe um elemento na posicao ele eh somado
-static int matrix_sumaddelem(Matrix **m, unsigned int n_rows, unsigned int n_columns, int line, int column, float info)
+static int matrix_suminsertelem(Matrix **m, unsigned int n_rows, unsigned int n_columns, int line, int column, float info)
 {
     unsigned int summed = erro;
     if (info == 0.0)
-        return sucesso;
+        return sucesso; //pula qualquer 0
     Matrix *it_r = (*m);
     Matrix *it_c = (*m);
     Matrix *ant = NULL;
@@ -171,15 +171,13 @@ static int matrix_sumaddelem(Matrix **m, unsigned int n_rows, unsigned int n_col
         ant = it_c2;
         it_c2 = it_c2->below;
     }
-    if (n->line < it_c2->line)
+    if (it_c2->line > n->line)
     {
-        //coloca n entre o ant e o it_c2
         ant->below = n;
         n->below = it_c2;
     }
     else
     {
-        //coloca o elemento na ultima posicao
         if (it_c2->line == n->line && it_c2->column == n->column)
         {
             it_c2->info += n->info;
@@ -218,10 +216,10 @@ int matrix_create(Matrix **m)
     f = stdin;
     int retorno = 0;
     retorno = matrix_createheaders(m, n_rows, n_columns);
-    retorno = matrix_addelem(m, n_rows, n_columns, 2, 2, 1.0);
-    retorno = matrix_addelem(m, n_rows, n_columns, 2, 1, 1.0);
-    retorno = matrix_addelem(m, n_rows, n_columns, 2, 1, 1.0);
-    retorno = matrix_addelem(m, n_rows, n_columns, 1, 1, 1.0);
+    retorno = matrix_insertelement(m, n_rows, n_columns, 2, 2, 3.0);
+    retorno = matrix_insertelement(m, n_rows, n_columns, 2, 2, 1.0);
+    retorno = matrix_insertelement(m, n_rows, n_columns, 2, 1, 1.0);
+    retorno = matrix_insertelement(m, n_rows, n_columns, 1, 1, 1.0);
     return retorno;
 }
 int matrix_destroy(Matrix *m)
@@ -229,27 +227,28 @@ int matrix_destroy(Matrix *m)
     if (!m)
         return erro;
     Matrix *it_r = m->below;
-    Matrix *it_c = m;
+    Matrix *it_c = m->right;
     Matrix *temp = NULL;
     while (it_r != m)
     {
         Matrix *t = it_r->right;
-        while (it_r != t)
+        while (t != it_r)
         {
-            temp = it_r;
-            it_r = temp->right;
+            temp = t;
+            t = temp->right;
             free(temp);
         }
-        temp = t;
         it_r = it_r->below;
-        free(temp);
+        free(t);
     }
-    while (it_c)
+    while (it_c!=m)
     {
         temp = it_c;
         it_c = it_c->right;
         free(temp);
     }
+    free(m);
+    printf("matrix destroyed!\n");
     return sucesso;
 }
 int matrix_print(const Matrix *m)
@@ -292,17 +291,17 @@ int matrix_add(const Matrix *m, const Matrix *n, Matrix **r)
             it1_c = it1_r->right;
             while (it1_c != it1_r)
             {
-                matrix_sumaddelem(r, dim1_r, dim1_c, it1_c->line, it1_c->column, it1_c->info);
+                matrix_suminsertelem(r, dim1_r, dim1_c, it1_c->line, it1_c->column, it1_c->info);
                 it1_c = it1_c->right;
             }
             it1_r = it1_r->below;
         }
-        while (it2_r != m)
+        while (it2_r != n)
         {
             it2_c = it2_r->right;
             while (it2_c != it2_r)
             {
-                matrix_sumaddelem(r, dim1_r, dim1_c, it2_c->line, it2_c->column, it2_c->info);
+                matrix_suminsertelem(r, dim1_r, dim1_c, it2_c->line, it2_c->column, it2_c->info);
                 it2_c = it2_c->right;
             }
             it2_r = it2_r->below;

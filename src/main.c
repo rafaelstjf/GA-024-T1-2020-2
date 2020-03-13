@@ -39,5 +39,6 @@ int main(void)
     matrix_destroy(C);
     matrix_destroy(A);
     matrix_destroy(B);
+    printf("all the matrices are destroyed!\n");
     return 0;
 }
