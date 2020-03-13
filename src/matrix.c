@@ -257,12 +257,35 @@ int matrix_multiply(const Matrix *m, const Matrix *n, Matrix **r)
 }
 int matrix_transpose(const Matrix *m, Matrix **r)
 {
+    int retorno = false;
+    unsigned int dim_r, dim_c;
 
-    return false;
+    if (m)
+    {
+        matrix_getdimension(m, &dim_r, &dim_c);
+        retorno = matrix_createheaders(r, dim_c, dim_r);
+        if (retorno == false)
+            return false;
+        Matrix *it1_r = m->below, *it1_c = NULL;
+        while (it1_r != m)
+        {
+            it1_c = it1_r->right;
+            while (it1_c != it1_r)
+            {
+                retorno = matrix_insertelement(r, dim_c, dim_r, it1_c->column, it1_c->line, it1_c->info, false);
+                if (retorno == false)
+                    return false;
+                it1_c = it1_c->right;
+            }
+            it1_r = it1_r->below;
+        }
+        return true;
+    }
+    else
+        return false;
 }
 int matrix_getelem(const Matrix *m, int x, int y, float *elem)
 {
-
     return false;
 }
 int matrix_setelem(Matrix *m, int x, int y, float elem)
