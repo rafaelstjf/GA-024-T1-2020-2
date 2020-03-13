@@ -354,3 +354,4 @@ MigrationBackup/
 
 #Object files
 *.o
+src/main.exe
