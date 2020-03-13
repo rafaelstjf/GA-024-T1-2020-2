@@ -80,6 +80,7 @@ static int matrix_addelem(Matrix **m, unsigned int n_rows, unsigned int n_column
         return sucesso;
     Matrix *it_r = (*m);
     Matrix *it_c = (*m);
+    Matrix *ant = NULL;
     Matrix *n; //novo elemento
     n = (Matrix *)malloc(sizeof(Matrix));
     n->right = NULL;
@@ -97,61 +98,42 @@ static int matrix_addelem(Matrix **m, unsigned int n_rows, unsigned int n_column
     {
         it_c = it_c->right; //seleciona a coluna do cabecalho
     }
-    if (it_c->below == it_c)
-    { //nao existe elemento na coluna
-        n->below = it_c;
-        it_c->below = n;
-    }
-    else
-    { //ja existe elemento
-        Matrix *it_c2 = it_c;
-        Matrix *ant = NULL;
-        while (it_c2->below != it_c || it_c2->line < n->line)
-        {
-            /*percorre a lista enquanto nao for o ultimo
-            ou tiver em uma linha anterior ao novo elem */
-            ant = it_c2;
-            it_c2 = it_c2->below;
-        }
-        if (it_c2->line > n->line)
-        {
-            ant->below = n;
-            n->below = it_c2;
-        }
-        else
-        {
-            //coloca o elemento na ultima posicao
-            it_c2->below = n;
-            n->below = it_c;
-        }
-    }
-    if (it_r->right == it_r)
+    Matrix *it_c2 = it_c;
+    while (it_c2->below != it_c && it_c2->line < n->line)
     {
-        //nao existe elemento na linha
-        n->right = it_r;
-        it_r->right = n;
+        /*percorre a lista enquanto nao for o ultimo
+            ou tiver em uma linha anterior ao novo elem */
+        ant = it_c2;
+        it_c2 = it_c2->below;
+    }
+    if (it_c2->line > n->line)
+    {
+        ant->below = n;
+        n->below = it_c2;
     }
     else
-    { //ja existe elemento
-        Matrix *it_r2 = it_r;
-        Matrix *ant = NULL;
-        while (it_r2->right != it_r || it_r2->column < n->column)
-        {
-            /*percorre a lista enquanto nao for o ultimo
+    {
+        it_c2->below = n;
+        n->below = it_c;
+    }
+    Matrix *it_r2 = it_r;
+    ant = NULL;
+    while (it_r2->right != it_r && it_r2->column < n->column)
+    {
+        /*percorre a lista enquanto nao for o ultimo
             ou tiver em uma linha anterior ao novo elem */
-            ant = it_r2;
-            it_r2 = it_r2->right;
-        }
-        if (it_r2->column > n->column)
-        {
-            ant->right = n;
-            n->right = it_r2;
-        }
-        else
-        {
-            it_r2->right = n;
-            n->right = it_r;
-        }
+        ant = it_r2;
+        it_r2 = it_r2->right;
+    }
+    if (it_r2->column > n->column)
+    {
+        ant->right = n;
+        n->right = it_r2;
+    }
+    else
+    {
+        it_r2->right = n;
+        n->right = it_r;
     }
     return sucesso;
 }
@@ -182,16 +164,16 @@ static int matrix_sumaddelem(Matrix **m, unsigned int n_rows, unsigned int n_col
         it_c = it_c->right; //seleciona a coluna do cabecalho
     }
     Matrix *it_c2 = it_c;
-    while (it_c2->below != it_c || it_c2->line < n->line)
+    while (it_c2->below != it_c && it_c2->line < n->line)
     {
         /*percorre a lista enquanto nao for o ultimo
             ou tiver em uma linha anterior ao novo elem */
         ant = it_c2;
         it_c2 = it_c2->below;
-        //printf("agarrado no loop\n");
     }
-    if (it_c2->line > n->line)
+    if (n->line < it_c2->line)
     {
+        //coloca n entre o ant e o it_c2
         ant->below = n;
         n->below = it_c2;
     }
@@ -209,7 +191,7 @@ static int matrix_sumaddelem(Matrix **m, unsigned int n_rows, unsigned int n_col
     }
     Matrix *it_r2 = it_r;
     ant = NULL;
-    while (it_r2->right != it_r || it_r2->column < n->column)
+    while (it_r2->right != it_r && it_r2->column < n->column)
     {
         /*percorre a lista enquanto nao for o ultimo
             ou tiver em uma linha anterior ao novo elem */
