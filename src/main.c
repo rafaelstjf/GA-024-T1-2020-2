@@ -36,6 +36,8 @@ int main(void)
         matrix_print(C);
     else
         fprintf(stderr, "Erro na transposicao C=A^T.\n");
+    float  elem;
+    if(matrix_getelem(A, 2,2, &elem) == 0) printf("elemento: %f", elem);
     matrix_destroy(C);
     matrix_destroy(A);
     matrix_destroy(B);

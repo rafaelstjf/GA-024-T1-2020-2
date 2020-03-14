@@ -286,6 +286,33 @@ int matrix_transpose(const Matrix *m, Matrix **r)
 }
 int matrix_getelem(const Matrix *m, int x, int y, float *elem)
 {
+    if (m)
+    {
+        unsigned int dim_r, dim_c;
+        matrix_getdimension(m, &dim_r, &dim_c);
+        if (dim_r < x || dim_c < y)
+            return false;
+        Matrix *it_c = m->right;
+        while (it_c->column != y)
+        {
+            it_c = it_c->right;
+        }
+        printf("COLUNA DO ITC: %d %d\n", it_c->column, y);
+        Matrix *it_r = it_c->below;
+        while (it_r->line != x)
+        {
+            printf("LINHA ATUAL DO ITR NESSA DESGRACA %d\n", it_r->line);
+            if (it_r == it_c)
+            {
+                return false;
+            }
+            it_r = it_r->below;
+        }
+        printf("COLUNA DO ITCR: %d %d\n", it_r->line, x);
+        printf("esse eh o elemento: %f\n", it_r->info);
+        (*elem) = it_r->info;
+        return true;
+    }
     return false;
 }
 int matrix_setelem(Matrix *m, int x, int y, float elem)
