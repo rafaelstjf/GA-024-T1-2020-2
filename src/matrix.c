@@ -89,7 +89,6 @@ static int matrix_insertelement(Matrix **m, unsigned int n_rows, unsigned int n_
     {
         it_r = it_r->below; //seleciona a linha do cabecalho
     }
-    printf("ITR LINE: %d, COLUMN: %d\n", it_r->line, it_r->column);
     while (it_c->column != column)
     {
         it_c = it_c->right; //seleciona a coluna do cabecalho
@@ -192,7 +191,6 @@ int matrix_destroy(Matrix *m)
         free(temp);
     }
     free(m);
-    printf("matriz desalocada!\n");
     return true;
 }
 int matrix_print(const Matrix *m)
