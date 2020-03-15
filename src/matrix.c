@@ -116,6 +116,13 @@ static int matrix_insertelement(Matrix **m, unsigned int n_rows, unsigned int n_
             if (addifequal == true)
             { //se ja existe um elemento na posicao ele eh somado
                 it_c2->info += n->info;
+                if (it_c2->info == 0.0)
+                {
+                    //precisa ser conferido
+                    ant->below = it_c2->below;
+                    free(it_c2);
+                    it_c2 = ant;
+                }
                 free(n);
                 return true;
             }
@@ -157,7 +164,7 @@ int matrix_create(Matrix **m)
     retorno = matrix_createheaders(m, n_rows, n_columns);
     retorno = matrix_insertelement(m, n_rows, n_columns, 2, 2, 3.0, false);
     retorno = matrix_insertelement(m, n_rows, n_columns, 2, 2, 1.0, false);
-    retorno = matrix_insertelement(m, n_rows, n_columns, 2, 1, 1.0, false);
+    retorno = matrix_insertelement(m, n_rows, n_columns, 2, 1, 2.0, false);
     retorno = matrix_insertelement(m, n_rows, n_columns, 1, 1, 1.0, false);
     return retorno;
 }
@@ -187,7 +194,7 @@ int matrix_destroy(Matrix *m)
         free(temp);
     }
     free(m);
-    printf("matrix destroyed!\n");
+    printf("matriz desalocada!\n");
     return true;
 }
 int matrix_print(const Matrix *m)
@@ -252,8 +259,25 @@ int matrix_add(const Matrix *m, const Matrix *n, Matrix **r)
 }
 int matrix_multiply(const Matrix *m, const Matrix *n, Matrix **r)
 {
-
-    return false;
+    unsigned int dm_r, dm_c, dn_r, dn_c;
+    int retorno = false;
+    if (m && n)
+    {
+        matrix_getdimension(m, &dm_r, &dm_c);
+        matrix_getdimension(n, &dn_r, &dn_c);
+        retorno = matrix_createheaders(r, dm_r, dm_c);
+        if (retorno == false)
+            return false;
+        const Matrix *itm_r = NULL, *itm_c = NULL, *tmn_r = NULL, *itn_c = NULL;
+        itm_r = m->below;
+        while (itm_r != m)
+        {
+            itm_r = itm_r->below;
+        }
+        return true;
+    }
+    else
+        return false;
 }
 int matrix_transpose(const Matrix *m, Matrix **r)
 {
@@ -290,26 +314,22 @@ int matrix_getelem(const Matrix *m, int x, int y, float *elem)
     {
         unsigned int dim_r, dim_c;
         matrix_getdimension(m, &dim_r, &dim_c);
-        if (dim_r < x || dim_c < y)
+        if (dim_r < x || dim_c < y || x <= 0 || y <= 0)
             return false;
-        Matrix *it_c = m->right;
-        while (it_c->column != y)
+        const Matrix *it_c = m;
+        for (unsigned int i = 0; i <= y; i++)
         {
             it_c = it_c->right;
         }
-        printf("COLUNA DO ITC: %d %d\n", it_c->column, y);
-        Matrix *it_r = it_c->below;
+        const Matrix *it_r = it_c->below;
         while (it_r->line != x)
         {
-            printf("LINHA ATUAL DO ITR NESSA DESGRACA %d\n", it_r->line);
             if (it_r == it_c)
             {
                 return false;
             }
             it_r = it_r->below;
         }
-        printf("COLUNA DO ITCR: %d %d\n", it_r->line, x);
-        printf("esse eh o elemento: %f\n", it_r->info);
         (*elem) = it_r->info;
         return true;
     }
@@ -318,5 +338,28 @@ int matrix_getelem(const Matrix *m, int x, int y, float *elem)
 int matrix_setelem(Matrix *m, int x, int y, float elem)
 {
 
+    if (m)
+    {
+        unsigned int dim_r, dim_c;
+        matrix_getdimension(m, &dim_r, &dim_c);
+        if (dim_r < x || dim_c < y || x <= 0 || y <= 0)
+            return false;
+        Matrix *it_c = m;
+        for (unsigned int i = 0; i <= y; i++)
+        {
+            it_c = it_c->right;
+        }
+        Matrix *it_r = it_c->below;
+        while (it_r->line != x)
+        {
+            if (it_r == it_c)
+            {
+                return false;
+            }
+            it_r = it_r->below;
+        }
+        it_r->info = elem;
+        return true;
+    }
     return false;
 }

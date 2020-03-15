@@ -356,3 +356,4 @@ MigrationBackup/
 *.o
 src/*.exe
 
+src/main.exe
