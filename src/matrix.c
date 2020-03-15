@@ -157,15 +157,15 @@ static int matrix_insertelement(Matrix **m, unsigned int n_rows, unsigned int n_
 int matrix_create(Matrix **m)
 {
     FILE *f = NULL;
-    unsigned int n_rows = 5;
-    unsigned int n_columns = 5;
+    unsigned int n_rows = 2;
+    unsigned int n_columns = 2;
     f = stdin;
     int retorno = 0;
     retorno = matrix_createheaders(m, n_rows, n_columns);
-    retorno = matrix_insertelement(m, n_rows, n_columns, 2, 2, 3.0, false);
-    retorno = matrix_insertelement(m, n_rows, n_columns, 2, 2, 1.0, false);
-    retorno = matrix_insertelement(m, n_rows, n_columns, 2, 1, 2.0, false);
     retorno = matrix_insertelement(m, n_rows, n_columns, 1, 1, 1.0, false);
+    retorno = matrix_insertelement(m, n_rows, n_columns, 1, 2, 3.0, false);
+    retorno = matrix_insertelement(m, n_rows, n_columns, 2, 1, 2.0, false);
+    retorno = matrix_insertelement(m, n_rows, n_columns, 2, 2, 1.0, false);
     return retorno;
 }
 int matrix_destroy(Matrix *m)
@@ -265,13 +265,30 @@ int matrix_multiply(const Matrix *m, const Matrix *n, Matrix **r)
     {
         matrix_getdimension(m, &dm_r, &dm_c);
         matrix_getdimension(n, &dn_r, &dn_c);
-        retorno = matrix_createheaders(r, dm_r, dm_c);
+        retorno = matrix_createheaders(r, dm_r, dn_c);
         if (retorno == false)
             return false;
-        const Matrix *itm_r = NULL, *itm_c = NULL, *tmn_r = NULL, *itn_c = NULL;
+        const Matrix *itm_r = NULL, *itm_c = NULL, *itn_r = NULL, *itn_c = NULL;
         itm_r = m->below;
         while (itm_r != m)
         {
+            itm_c = itm_r->right; //coluna da matriz m
+            itn_c = m->right;     //coluna da matriz n
+            while (itm_c != itm_r)
+            {
+                float val = itm_c->info;
+                float sum = 0.0;
+                itn_r = itn_c->below;
+                while (itn_r != itn_c)
+                {
+                    sum += itn_r->info;
+                    itn_r = itn_r->below;
+                }
+                val*=sum;
+                matrix_insertelement(r, dm_r, dn_c, itm_c->line, itm_c->column, val, false);
+                itn_c = itn_c->right;
+                itm_c = itm_c->right;
+            }
             itm_r = itm_r->below;
         }
         return true;
