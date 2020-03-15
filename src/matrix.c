@@ -201,7 +201,7 @@ int matrix_print(const Matrix *m)
         matrix_getdimension(m, &n_rows, &n_columns);
         const Matrix *it_r = m->below;
         fprintf(stdout, "%d\t%d\n", n_rows, n_columns);
-        while(it_r->line > -1)
+        while (it_r->line > -1)
         {
             const Matrix *it_c = it_r->right;
             while (it_c != it_r)
@@ -330,7 +330,7 @@ int matrix_getelem(const Matrix *m, int x, int y, float *elem)
         if (dim_r < x || dim_c < y || x <= 0 || y <= 0)
             return false;
         const Matrix *it_c = m;
-        for (unsigned int i = 0; i <= y; i++)
+        while (it_c->column != y)
         {
             it_c = it_c->right;
         }
@@ -358,7 +358,7 @@ int matrix_setelem(Matrix *m, int x, int y, float elem)
         if (dim_r < x || dim_c < y || x <= 0 || y <= 0)
             return false;
         Matrix *it_c = m;
-        while(it_c->column != y)
+        while (it_c->column != y)
         {
             it_c = it_c->right;
         }
