@@ -17,17 +17,13 @@ static int matrix_getdimension(const Matrix *m, unsigned int *lines, unsigned in
         unsigned int n_rows = 0;
         unsigned int n_columns = 0;
         Matrix *it_r = m->below;
-        while (it_r != m) //conta as linhas
-        {
+        while (it_r->below != m) //percorre ateh o ultimo elemento
             it_r = it_r->below;
-            n_rows++;
-        }
+        n_rows = it_r->line; //atribui a linha do ultimo
         it_r = m->right;
-        while (it_r != m) //conta as colunas
-        {
+        while (it_r->right != m)
             it_r = it_r->right;
-            n_columns++;
-        }
+        n_columns = it_r->column;
         (*lines) = n_rows;
         (*columns) = n_columns;
     }
@@ -45,9 +41,9 @@ static int matrix_createheaders(Matrix **m, unsigned int n_rows, unsigned int n_
     (*m)->column = -1;
     (*m)->info = -1.0;
     Matrix *it = (*m);
+    //cria as linhas do cabecalho
     for (unsigned int i = 1; i <= n_rows; i++)
     {
-        //cria um novo no e atribui os valores a ele
         Matrix *r = (Matrix *)malloc(sizeof(Matrix));
         r->right = r;
         r->below = (*m);
@@ -58,6 +54,7 @@ static int matrix_createheaders(Matrix **m, unsigned int n_rows, unsigned int n_
         it = it->below;
     }
     it = (*m);
+    //cria as colunas do cabecalho
     for (unsigned int j = 1; j <= n_columns; j++)
     {
         //cria um novo no e atribui os valores a ele
@@ -86,13 +83,14 @@ static int matrix_insertelement(Matrix **m, unsigned int n_rows, unsigned int n_
     n->line = line;
     n->column = column;
     n->info = info;
-    if (line > n_rows || column > n_columns)
+    if (line > n_rows || column > n_columns || line <= 0 || column <= 0)
         return false; //n eh possivel inserir
-    for (int i = 0; i <= line; i++)
+    while (it_r->line != line)
     {
         it_r = it_r->below; //seleciona a linha do cabecalho
     }
-    for (int j = 0; j <= column; j++)
+    printf("ITR LINE: %d, COLUMN: %d\n", it_r->line, it_r->column);
+    while (it_c->column != column)
     {
         it_c = it_c->right; //seleciona a coluna do cabecalho
     }
@@ -203,11 +201,11 @@ int matrix_print(const Matrix *m)
     {
         unsigned int n_rows = 0, n_columns = 0;
         matrix_getdimension(m, &n_rows, &n_columns);
-        Matrix *it_r = m->below;
+        const Matrix *it_r = m->below;
         fprintf(stdout, "%d\t%d\n", n_rows, n_columns);
-        while (it_r != m)
+        while(it_r->line > -1)
         {
-            Matrix *it_c = it_r->right;
+            const Matrix *it_c = it_r->right;
             while (it_c != it_r)
             {
                 fprintf(stdout, "%d\t%d\t%f\n", it_c->line, it_c->column, it_c->info);
@@ -284,7 +282,7 @@ int matrix_multiply(const Matrix *m, const Matrix *n, Matrix **r)
                     sum += itn_r->info;
                     itn_r = itn_r->below;
                 }
-                val*=sum;
+                val *= sum;
                 matrix_insertelement(r, dm_r, dn_c, itm_c->line, itm_c->column, val, false);
                 itn_c = itn_c->right;
                 itm_c = itm_c->right;
@@ -362,7 +360,7 @@ int matrix_setelem(Matrix *m, int x, int y, float elem)
         if (dim_r < x || dim_c < y || x <= 0 || y <= 0)
             return false;
         Matrix *it_c = m;
-        for (unsigned int i = 0; i <= y; i++)
+        while(it_c->column != y)
         {
             it_c = it_c->right;
         }
