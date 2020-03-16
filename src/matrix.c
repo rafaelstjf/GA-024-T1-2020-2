@@ -158,16 +158,21 @@ int matrix_create(Matrix **m)
     char buffer[buffer_size];
     unsigned int n_rows = 0;
     unsigned int n_columns = 0;
-    int retorno = 0;
+    int retorno = false;
     while (fgets(buffer, buffer_size, stdin)) // le do stdin
     {
         strstream = realloc(strstream, strlen(strstream) + 1 + strlen(buffer));
         if (!strstream)
             return false;
         strcat(strstream, buffer);
-        //if(strcmp(buffer, (const char*)'0') == 0) break;
+        //if(strcmp(buffer, (const char*)'0') == 0) break; //nao funciona
     }
     char *token = strtok(strstream, " ");
+    while(token){
+        printf("%s\n", token);
+        token = strtok(NULL, " ");
+    }
+    /*
     n_rows = atoi(token);
     token = strtok(NULL, " ");
     n_columns = atoi(token);
@@ -200,7 +205,7 @@ int matrix_create(Matrix **m)
         }
         float info = atof(token);
         retorno = matrix_insertelement(m, n_rows, n_columns, line, column, info, false);
-    }
+    }*/
     return retorno;
 }
 int matrix_destroy(Matrix *m)
