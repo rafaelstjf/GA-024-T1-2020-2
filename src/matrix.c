@@ -153,16 +153,54 @@ static int matrix_insertelement(Matrix **m, unsigned int n_rows, unsigned int n_
 
 int matrix_create(Matrix **m)
 {
-    FILE *f = NULL;
-    unsigned int n_rows = 2;
-    unsigned int n_columns = 2;
-    f = stdin;
+    unsigned int buffer_size = 256;
+    char *strstream = calloc(1, 1); //aloca e inicia tudo com 0
+    char buffer[buffer_size];
+    unsigned int n_rows = 0;
+    unsigned int n_columns = 0;
     int retorno = 0;
+    while (fgets(buffer, buffer_size, stdin)) // le do stdin
+    {
+        strstream = realloc(strstream, strlen(strstream) + 1 + strlen(buffer));
+        if (!strstream)
+            return false;
+        strcat(strstream, buffer);
+        //if(strcmp(buffer, (const char*)'0') == 0) break;
+    }
+    char *token = strtok(strstream, " ");
+    n_rows = atoi(token);
+    token = strtok(NULL, " ");
+    n_columns = atoi(token);
     retorno = matrix_createheaders(m, n_rows, n_columns);
-    retorno = matrix_insertelement(m, n_rows, n_columns, 1, 1, 1.0, false);
-    retorno = matrix_insertelement(m, n_rows, n_columns, 1, 2, 3.0, false);
-    retorno = matrix_insertelement(m, n_rows, n_columns, 2, 1, 2.0, false);
-    retorno = matrix_insertelement(m, n_rows, n_columns, 2, 2, 1.0, false);
+    printf("NUMERO DE LINHAS: %d, NUMERO DE COLUNAS: %d\n", n_rows, n_columns);
+    unsigned int stop = false;
+    while (stop == false)
+    {
+        token = strtok(NULL, " ");
+        if (!token)
+        {
+            free(m);
+            return false;
+        }
+        int line = atoi(token);
+        if (line == 0)
+            stop = true;
+        token = strtok(NULL, " ");
+        if (!token)
+        {
+            free(m);
+            return false;
+        }
+        int column = atoi(token);
+        token = strtok(NULL, " ");
+        if (!token)
+        {
+            free(m);
+            return false;
+        }
+        float info = atof(token);
+        retorno = matrix_insertelement(m, n_rows, n_columns, line, column, info, false);
+    }
     return retorno;
 }
 int matrix_destroy(Matrix *m)
