@@ -10,6 +10,25 @@ struct matrix
     int column;
     float info;
 };
+static char *replace_char(char *input, char find, char replace)
+{
+    /*funcao para trocar um caractere. 
+Fonte: https://stackoverflow.com/questions/28637882/c-replace-one-character-in-an-char-array-by-another */
+
+    char *output = (char *)malloc(strlen(input));
+
+    for (int i = 0; i < strlen(input); i++)
+    {
+        if (input[i] == find)
+            output[i] = replace;
+        else
+            output[i] = input[i];
+    }
+
+    output[strlen(input)] = '\0';
+
+    return output;
+}
 static int matrix_getdimension(const Matrix *m, unsigned int *lines, unsigned int *columns)
 {
     if (m)
@@ -113,9 +132,15 @@ static int matrix_insertelement(Matrix **m, unsigned int n_rows, unsigned int n_
             if (addifequal == true)
             { //se ja existe um elemento na posicao ele eh somado
                 it_c2->info += n->info;
-                if (it_c2->info == 0.0)
+                if (it_c2->info == 0)
                 {
                     //precisa ser conferido
+                    Matrix *temp1 = it_r;
+                    while (temp1->right != it_c2)
+                    {
+                        temp1 = temp1->right;
+                    }
+                    temp1->right = it_c2->right;
                     ant->below = it_c2->below;
                     free(it_c2);
                     it_c2 = ant;
@@ -156,56 +181,50 @@ int matrix_create(Matrix **m)
     unsigned int buffer_size = 256;
     char *strstream = calloc(1, 1); //aloca e inicia tudo com 0
     char buffer[buffer_size];
+    char *token;
+    char *search = " ";
     unsigned int n_rows = 0;
     unsigned int n_columns = 0;
     int retorno = false;
-    while (fgets(buffer, buffer_size, stdin)) // le do stdin
+    while (fgets(buffer, buffer_size, stdin)) // read from stdin
     {
         strstream = realloc(strstream, strlen(strstream) + 1 + strlen(buffer));
         if (!strstream)
             return false;
+        if (strcmp(buffer, "0\n") == 0)
+            break; //para quando for digitado 0
         strcat(strstream, buffer);
-        //if(strcmp(buffer, (const char*)'0') == 0) break; //nao funciona
     }
-    char *token = strtok(strstream, " ");
-    while(token){
-        printf("%s\n", token);
-        token = strtok(NULL, " ");
-    }
-    /*
-    n_rows = atoi(token);
-    token = strtok(NULL, " ");
-    n_columns = atoi(token);
-    retorno = matrix_createheaders(m, n_rows, n_columns);
-    printf("NUMERO DE LINHAS: %d, NUMERO DE COLUNAS: %d\n", n_rows, n_columns);
-    unsigned int stop = false;
-    while (stop == false)
+    //printando tokens
+    /*printf("PRINTANDO TOKENS\n");
+    token = strtok(replace_char(strstream, '\n', ' '), search);
+    while (token)
     {
-        token = strtok(NULL, " ");
-        if (!token)
-        {
-            free(m);
-            return false;
-        }
+        printf("%s", token);
+        token = strtok(NULL, search);
+    }
+    */
+    //get the number of lines and number of columns
+    token = strtok(replace_char(strstream, '\n', ' '), search);
+    if (!token)
+        return false;
+    n_rows = atoi(token);
+    token = strtok(NULL, search);
+    if (!token)
+        return false;
+    n_columns = atoi(token);
+    if (matrix_createheaders(m, n_rows, n_columns) == false)
+        return false;
+    while (token)
+    {
+        token = strtok(NULL, search);
         int line = atoi(token);
-        if (line == 0)
-            stop = true;
-        token = strtok(NULL, " ");
-        if (!token)
-        {
-            free(m);
-            return false;
-        }
+        token = strtok(NULL, search);
         int column = atoi(token);
-        token = strtok(NULL, " ");
-        if (!token)
-        {
-            free(m);
-            return false;
-        }
+        token = strtok(NULL, search);
         float info = atof(token);
         retorno = matrix_insertelement(m, n_rows, n_columns, line, column, info, false);
-    }*/
+    }
     return retorno;
 }
 int matrix_destroy(Matrix *m)
@@ -382,7 +401,8 @@ int matrix_getelem(const Matrix *m, int x, int y, float *elem)
         {
             if (it_r == it_c)
             {
-                return false;
+                (*elem) = 0;
+                return true;
             }
             it_r = it_r->below;
         }
@@ -410,7 +430,8 @@ int matrix_setelem(Matrix *m, int x, int y, float elem)
         {
             if (it_r == it_c)
             {
-                return false;
+                //eh zero, entao cria novo elemento
+                matrix_insertelement(&m, dim_r, dim_c, x, y, elem, false);
             }
             it_r = it_r->below;
         }

@@ -357,3 +357,4 @@ MigrationBackup/
 src/*.exe
 *.exe
 src/main.exe
+.vscode/settings.json
