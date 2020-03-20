@@ -359,3 +359,4 @@ src/*.exe
 src/main.exe
 .vscode/settings.json
 src/a.out
+src/main
