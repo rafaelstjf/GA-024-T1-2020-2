@@ -51,9 +51,10 @@ static int matrix_getdimension(const Matrix *m, unsigned int *lines, unsigned in
 }
 static int matrix_createheaders(Matrix **m, unsigned int n_rows, unsigned int n_columns)
 {
-    if ((*m))
-        free((*m));
+    if (!(*m))
+        free(*m);
     (*m) = (Matrix *)malloc(sizeof(Matrix)); //cabeca da lista
+    if(!(*m)) return false;
     (*m)->right = (*m);
     (*m)->below = (*m);
     (*m)->line = -1;
@@ -64,6 +65,7 @@ static int matrix_createheaders(Matrix **m, unsigned int n_rows, unsigned int n_
     for (unsigned int i = 1; i <= n_rows; i++)
     {
         Matrix *r = (Matrix *)malloc(sizeof(Matrix));
+        if(!r) return false;
         r->right = r;
         r->below = (*m);
         r->line = i;
@@ -78,6 +80,7 @@ static int matrix_createheaders(Matrix **m, unsigned int n_rows, unsigned int n_
     {
         //cria um novo no e atribui os valores a ele
         Matrix *r = (Matrix *)malloc(sizeof(Matrix));
+        if(!r) return false;
         r->right = (*m);
         r->below = r;
         r->line = -1;
@@ -196,15 +199,16 @@ int matrix_create(Matrix **m)
         strcat(strstream, buffer);
     }
     //printando tokens
-    /*printf("PRINTANDO TOKENS\n");
+    /*
+    printf("PRINTANDO TOKENS\n");
     token = strtok(replace_char(strstream, '\n', ' '), search);
     while (token)
     {
-        printf("%s", token);
+        printf("%f\n", atof(token));
         token = strtok(NULL, search);
-    }
-    */
+    }*/
     //get the number of lines and number of columns
+    free(token);
     token = strtok(replace_char(strstream, '\n', ' '), search);
     if (!token)
         return false;
@@ -215,15 +219,23 @@ int matrix_create(Matrix **m)
     n_columns = atoi(token);
     if (matrix_createheaders(m, n_rows, n_columns) == false)
         return false;
+    token = strtok(NULL, search);
     while (token)
     {
+        int line, column;
+        int first = false;
+        float info;
+        if(!token) break;
+        line = atoi(token);
         token = strtok(NULL, search);
-        int line = atoi(token);
+        if(!token) break;
+        column = atoi(token);
         token = strtok(NULL, search);
-        int column = atoi(token);
-        token = strtok(NULL, search);
-        float info = atof(token);
+        if(!token) break;
+        info = atof(token);
+        printf("Inserindo elementos: (%d, %d) %f\n", line, column, info);
         retorno = matrix_insertelement(m, n_rows, n_columns, line, column, info, false);
+        token = strtok(NULL, search);
     }
     return retorno;
 }
