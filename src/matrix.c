@@ -36,9 +36,9 @@ static int matrix_getdimension(const Matrix *m, unsigned int *lines, unsigned in
         unsigned int n_rows = 0;
         unsigned int n_columns = 0;
         Matrix *it_r = m->below;
-        while (it_r->below != m) //percorre ateh o ultimo elemento
+        while (it_r->below != m) //iterates until the last element
             it_r = it_r->below;
-        n_rows = it_r->line; //atribui a linha do ultimo
+        n_rows = it_r->line; //get the number of lines of the last element
         it_r = m->right;
         while (it_r->right != m)
             it_r = it_r->right;
@@ -49,11 +49,14 @@ static int matrix_getdimension(const Matrix *m, unsigned int *lines, unsigned in
     else
         return false;
 }
+/**
+ * function to create the header of the list
+ */
 static int matrix_createheaders(Matrix **m, unsigned int n_rows, unsigned int n_columns)
 {
     if (!m)
         free(m);
-    (*m) = (Matrix *)malloc(sizeof(Matrix)); //cabeca da lista
+    (*m) = (Matrix *)malloc(sizeof(Matrix)); //head of the list
     if (!m)
         return false;
     (*m)->right = (*m);
@@ -62,7 +65,7 @@ static int matrix_createheaders(Matrix **m, unsigned int n_rows, unsigned int n_
     (*m)->column = -1;
     (*m)->info = -1.0;
     Matrix *it = (*m);
-    //cria as linhas do cabecalho
+    //creates the lines of the header
     for (unsigned int i = 1; i <= n_rows; i++)
     {
         Matrix *r;
@@ -78,10 +81,9 @@ static int matrix_createheaders(Matrix **m, unsigned int n_rows, unsigned int n_
         it = it->below;
     }
     it = (*m);
-    //cria as colunas do cabecalho
+    //creates the columns of the header
     for (unsigned int j = 1; j <= n_columns; j++)
     {
-        //cria um novo no e atribui os valores a ele
         Matrix *r;
         r = (Matrix *)malloc(sizeof(Matrix));
         if (!r)
@@ -96,23 +98,23 @@ static int matrix_createheaders(Matrix **m, unsigned int n_rows, unsigned int n_
     }
     return true;
 }
-static int matrix_insertelement(Matrix **m, unsigned int n_rows, unsigned int n_columns, int line, int column, float info, unsigned int addifequal)
+static int matrix_insertelement(Matrix **m, unsigned int n_rows, unsigned int n_columns, int row, int column, float info, unsigned int addifequal)
 {
     if (info == 0.0)
-        return true; //pula qualquer 0
+        return true; //skips the operation if the new element is 0
     Matrix *it_r = (*m);
     Matrix *it_c = (*m);
     Matrix *ant = NULL;
-    Matrix *n; //novo elemento
+    Matrix *n; //pointer to the new element
     n = (Matrix *)malloc(sizeof(Matrix));
     n->right = NULL;
     n->below = NULL;
-    n->line = line;
+    n->line = row;
     n->column = column;
     n->info = info;
-    if (line > n_rows || column > n_columns || line <= 0 || column <= 0)
-        return false; //n eh possivel inserir
-    while (it_r->line != line)
+    if (row > n_rows || column > n_columns || row <= 0 || column <= 0)
+        return false; //checks if the position is out of bounds
+    while (it_r->line != row)
     {
         it_r = it_r->below; //seleciona a linha do cabecalho
     }
@@ -123,8 +125,8 @@ static int matrix_insertelement(Matrix **m, unsigned int n_rows, unsigned int n_
     Matrix *it_c2 = it_c;
     while (it_c2->below != it_c && it_c2->line < n->line)
     {
-        /*percorre a lista enquanto nao for o ultimo
-            ou tiver em uma linha anterior ao novo elem */
+        /* iterates the list while it_c2 isn't the last element
+        or it's row is above the new element */
         ant = it_c2;
         it_c2 = it_c2->below;
     }
@@ -138,11 +140,11 @@ static int matrix_insertelement(Matrix **m, unsigned int n_rows, unsigned int n_
         if (it_c2->line == n->line && it_c2->column == n->column)
         {
             if (addifequal == true)
-            { //se ja existe um elemento na posicao ele eh somado
+            { //if there is already a element in this position the values are summed.
                 it_c2->info += n->info;
                 if (it_c2->info == 0)
                 {
-                    //precisa ser conferido
+                    //if the sum is 0 then the element is removed
                     Matrix *temp1 = it_r;
                     while (temp1->right != it_c2)
                     {
@@ -157,7 +159,7 @@ static int matrix_insertelement(Matrix **m, unsigned int n_rows, unsigned int n_
                 return true;
             }
             else
-                return true;
+                return false;
         }
         it_c2->below = n;
         n->below = it_c;
@@ -166,8 +168,8 @@ static int matrix_insertelement(Matrix **m, unsigned int n_rows, unsigned int n_
     ant = NULL;
     while (it_r2->right != it_r && it_r2->column < n->column)
     {
-        /*percorre a lista enquanto nao for o ultimo
-            ou tiver em uma linha anterior ao novo elem */
+        /* iterates the list while it_r2 isn't the last element
+        or it's column is above the new element */
         ant = it_r2;
         it_r2 = it_r2->right;
     }
@@ -187,31 +189,22 @@ static int matrix_insertelement(Matrix **m, unsigned int n_rows, unsigned int n_
 int matrix_create(Matrix **m)
 {
     unsigned int buffer_size = 256;
-    char *strstream = calloc(1, 1); //aloca e inicia tudo com 0
+    char *strstream = calloc(1, 1); //allocates the pointer and fills it with 1
     char buffer[buffer_size];
     char *token;
     char *search = " ";
     unsigned int n_rows = 0;
     unsigned int n_columns = 0;
-    int retorno = false;
+    int return_flag = false;
     while (fgets(buffer, buffer_size, stdin)) // read from stdin
     {
         strstream = realloc(strstream, strlen(strstream) + 1 + strlen(buffer));
         if (!strstream)
             return false;
         if (strcmp(buffer, "0\n") == 0)
-            break; //para quando for digitado 0
+            break; //stops when it finds a line containing 0
         strcat(strstream, buffer);
     }
-    //printando tokens
-    /*
-    printf("PRINTANDO TOKENS\n");
-    token = strtok(replace_char(strstream, '\n', ' '), search);
-    while (token)
-    {
-        printf("%f\n", atof(token));
-        token = strtok(NULL, search);
-    }*/
     //get the number of lines and number of columns
     free(token);
     token = strtok(replace_char(strstream, '\n', ' '), search);
@@ -227,6 +220,7 @@ int matrix_create(Matrix **m)
     token = strtok(NULL, search);
     while (token)
     {
+        //if there isn't 3 elements in a line the while is stopped
         int line, column;
         int first = false;
         float info;
@@ -241,10 +235,10 @@ int matrix_create(Matrix **m)
         if (!token)
             break;
         info = atof(token);
-        retorno = matrix_insertelement(m, n_rows, n_columns, line, column, info, false);
+        return_flag = matrix_insertelement(m, n_rows, n_columns, line, column, info, false);
         token = strtok(NULL, search);
     }
-    return retorno;
+    return return_flag;
 }
 int matrix_destroy(Matrix *m)
 {
@@ -281,13 +275,13 @@ int matrix_print(const Matrix *m)
         unsigned int n_rows = 0, n_columns = 0;
         matrix_getdimension(m, &n_rows, &n_columns);
         const Matrix *it_r = m->below;
-        fprintf(stdout, "%d\t%d\n", n_rows, n_columns);
+        fprintf(stdout, "%d %d\n", n_rows, n_columns);
         while (it_r->line > -1)
         {
             const Matrix *it_c = it_r->right;
             while (it_c != it_r)
             {
-                fprintf(stdout, "%d\t%d\t%f\n", it_c->line, it_c->column, it_c->info);
+                fprintf(stdout, "%d %d %f\n", it_c->line, it_c->column, it_c->info);
                 it_c = it_c->right;
             }
             it_r = it_r->below;
@@ -299,8 +293,8 @@ int matrix_print(const Matrix *m)
 }
 int matrix_add(const Matrix *m, const Matrix *n, Matrix **r)
 {
-    int retorno = 0;
-    if (m && n) //verifica se as duas matrizes existe se possuem dimensoes iguais
+    int return_flag = 0;
+    if (m && n)
     {
         unsigned int dim1_r = 0, dim1_c = 0, dim2_r = 0, dim2_c = 0;
         matrix_getdimension(m, &dim1_r, &dim1_c);
@@ -308,7 +302,7 @@ int matrix_add(const Matrix *m, const Matrix *n, Matrix **r)
         if (dim1_r != dim1_r || dim1_c != dim2_c)
             return false;
         Matrix *it1_r = m->below, *it1_c = NULL, *it2_r = n->below, *it2_c = NULL;
-        retorno = matrix_createheaders(r, dim1_r, dim1_c);
+        return_flag = matrix_createheaders(r, dim1_r, dim1_c);
         while (it1_r != m)
         {
             it1_c = it1_r->right;
@@ -337,24 +331,26 @@ int matrix_add(const Matrix *m, const Matrix *n, Matrix **r)
 int matrix_multiply(const Matrix *m, const Matrix *n, Matrix **r)
 {
     unsigned int dm_r, dm_c, dn_r, dn_c;
-    int retorno = false;
+    int return_flag = false;
     if (m && n)
     {
         matrix_getdimension(m, &dm_r, &dm_c);
         matrix_getdimension(n, &dn_r, &dn_c);
-        retorno = matrix_createheaders(r, dm_r, dn_c);
-        if (retorno == false)
+        if (dm_c != dn_r)
+            return false;
+        return_flag = matrix_createheaders(r, dm_r, dn_c);
+        if (return_flag == false)
             return false;
         const Matrix *itm_r = NULL, *itm_c = NULL, *itn_r = NULL, *itn_c = NULL;
         itm_r = m->below;
-        while (itm_r != m)
+        while (itm_r != m) //for each row on M
         {
             itn_c = n->right;
             float sum = 0;
-            while (itn_c != n) //vai para a proxima coluna da matriz N
+            while (itn_c != n) //for each column on N
             {
                 itn_r = itn_c->below;
-                //le as linhas da coluna da atual da matriz N
+                //multiply the elements of N with the elements of M
                 while (itn_r != itn_c)
                 {
                     itm_c = itm_r->right;
@@ -386,14 +382,14 @@ int matrix_multiply(const Matrix *m, const Matrix *n, Matrix **r)
 }
 int matrix_transpose(const Matrix *m, Matrix **r)
 {
-    int retorno = false;
+    int return_flag = false;
     unsigned int dim_r, dim_c;
 
     if (m)
     {
         matrix_getdimension(m, &dim_r, &dim_c);
-        retorno = matrix_createheaders(r, dim_c, dim_r);
-        if (retorno == false)
+        return_flag = matrix_createheaders(r, dim_c, dim_r);
+        if (return_flag == false)
             return false;
         Matrix *it1_r = m->below, *it1_c = NULL;
         while (it1_r != m)
@@ -401,8 +397,8 @@ int matrix_transpose(const Matrix *m, Matrix **r)
             it1_c = it1_r->right;
             while (it1_c != it1_r)
             {
-                retorno = matrix_insertelement(r, dim_c, dim_r, it1_c->column, it1_c->line, it1_c->info, false);
-                if (retorno == false)
+                return_flag = matrix_insertelement(r, dim_c, dim_r, it1_c->column, it1_c->line, it1_c->info, false);
+                if (return_flag == false)
                     return false;
                 it1_c = it1_c->right;
             }
@@ -460,7 +456,7 @@ int matrix_setelem(Matrix *m, int x, int y, float elem)
         {
             if (it_r == it_c)
             {
-                //eh zero, entao cria novo elemento
+                //if it's 0 then creates a new element
                 matrix_insertelement(&m, dim_r, dim_c, x, y, elem, false);
             }
             it_r = it_r->below;
