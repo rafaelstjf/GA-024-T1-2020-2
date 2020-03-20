@@ -215,7 +215,8 @@ int matrix_create(Matrix **m)
     if (!token)
         return false;
     n_columns = atoi(token);
-    if (matrix_createheaders(m, n_rows, n_columns) == false)
+    return_flag = matrix_createheaders(m, n_rows, n_columns);
+    if (return_flag== false)
         return false;
     token = strtok(NULL, search);
     while (token)
