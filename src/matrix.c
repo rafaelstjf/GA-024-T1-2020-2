@@ -223,10 +223,7 @@ int matrix_create(Matrix **m)
         return false;
     n_columns = atoi(token);
     if (matrix_createheaders(m, n_rows, n_columns) == false)
-    {
-        printf("retornou false nos headers\n");
         return false;
-    }
     token = strtok(NULL, search);
     while (token)
     {
@@ -244,7 +241,6 @@ int matrix_create(Matrix **m)
         if (!token)
             break;
         info = atof(token);
-        printf("Inserindo elementos: (%d, %d) %f\n", line, column, info);
         retorno = matrix_insertelement(m, n_rows, n_columns, line, column, info, false);
         token = strtok(NULL, search);
     }
@@ -353,23 +349,34 @@ int matrix_multiply(const Matrix *m, const Matrix *n, Matrix **r)
         itm_r = m->below;
         while (itm_r != m)
         {
-            itm_c = itm_r->right; //coluna da matriz m
-            itn_c = m->right;     //coluna da matriz n
-            while (itm_c != itm_r)
+            itn_c = n->right;
+            float sum = 0;
+            while (itn_c != n) //vai para a proxima coluna da matriz N
             {
-                float val = itm_c->info;
-                float sum = 0.0;
                 itn_r = itn_c->below;
+                //le as linhas da coluna da atual da matriz N
                 while (itn_r != itn_c)
                 {
-                    sum += itn_r->info;
+                    itm_c = itm_r->right;
+                    while (itm_c != itm_r)
+                    {
+                        if (itm_c->column == itn_r->line)
+                        {
+                            sum += itm_c->info * itn_r->info;
+                            break;
+                        }
+                        itm_c = itm_c->right;
+                    }
                     itn_r = itn_r->below;
                 }
-                val *= sum;
-                matrix_insertelement(r, dm_r, dn_c, itm_c->line, itm_c->column, val, false);
+                if (sum > 0.0 || sum < 0.0)
+                {
+                    matrix_insertelement(r, dm_r, dn_c, itm_r->line, itn_c->column, sum, false);
+                }
+                sum = 0;
                 itn_c = itn_c->right;
-                itm_c = itm_c->right;
             }
+
             itm_r = itm_r->below;
         }
         return true;

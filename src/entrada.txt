@@ -7,6 +7,7 @@ Criando a matriz A
 4 3 -60
 4 4 5
 0
+
 Criando a matriz B
 4 4
 1 1 50
@@ -15,3 +16,30 @@ Criando a matriz B
 2 3 -20
 4 4 -5
 0
+
+Soma A + B
+4 4
+1 1 100
+1 2 30
+2 1 20
+4 1 -30
+4 3 -60
+
+Multiplicacao A x B
+4 4
+1 1 2500
+1 2 1500
+2 1 500
+2 2 300
+4 1 -1500
+4 2 -900
+4 4 -25
+
+Transposta de A
+4 4
+1 1 50
+1 2 10
+1 4 -30
+3 2 20
+3 4 -60
+4 4 5
