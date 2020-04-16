@@ -31,7 +31,7 @@ Multiplicacao A x B
 2 2 110.25
 3 3 0.045
 4 2 -25369.75
-4 4 - 8366.68
+4 4 -8366.68
 5 4 12
 
 Transposta de A
